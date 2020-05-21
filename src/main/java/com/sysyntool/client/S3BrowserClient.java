@@ -12,14 +12,14 @@ public class S3BrowserClient {
 	
 	private AmazonS3 s3 = null;	
 	
-	public S3BrowserClient(String accessKey,String secretKey,String serviceEndpoint,String signingRegion) {
-		buildS3(accessKey, secretKey, serviceEndpoint, signingRegion);
+	public S3BrowserClient(Configuration config) {
+		buildS3(config);
 	}
 	
-	public void buildS3(String accessKey,String secretKey,String serviceEndpoint,String signingRegion) {
-		BasicAWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
+	public void buildS3(Configuration config) {
+		BasicAWSCredentials credentials = new BasicAWSCredentials(config.getAccessKey(), config.getSecretKey());
 		ClientConfiguration ccfg = new ClientConfiguration().withUseExpectContinue(false);
-		EndpointConfiguration endpoint = new EndpointConfiguration(serviceEndpoint, signingRegion);
+		EndpointConfiguration endpoint = new EndpointConfiguration(config.getServiceEndpoint(), config.getSigningRegion());
 		s3 = AmazonS3ClientBuilder.standard()
 				.withCredentials(new AWSStaticCredentialsProvider(credentials)).withClientConfiguration(ccfg)
 				.withEndpointConfiguration(endpoint).withPathStyleAccessEnabled(true).build();
