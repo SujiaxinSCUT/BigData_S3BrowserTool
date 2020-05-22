@@ -60,6 +60,7 @@ public class S3SynManager {
 				}
 			}
 		}
+//		delete the rest file
 	}
 	
 	public void uploadSmallFile(String keyName,File file) {
