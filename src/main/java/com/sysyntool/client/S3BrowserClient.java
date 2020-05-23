@@ -12,11 +12,14 @@ public class S3BrowserClient {
 	
 	private AmazonS3 s3 = null;	
 	
-	public S3BrowserClient(Configuration config) {
+	private Configuration config;
+		
+	public S3BrowserClient(Configuration config) throws Exception {
 		buildS3(config);
 	}
 	
-	public void buildS3(Configuration config) {
+	public void buildS3(Configuration config) throws Exception{
+		this.config = config;
 		BasicAWSCredentials credentials = new BasicAWSCredentials(config.getAccessKey(), config.getSecretKey());
 		ClientConfiguration ccfg = new ClientConfiguration().withUseExpectContinue(false);
 		EndpointConfiguration endpoint = new EndpointConfiguration(config.getServiceEndpoint(), config.getSigningRegion());
@@ -29,4 +32,13 @@ public class S3BrowserClient {
 		return s3;
 	}
 
+	public Configuration getConfig() {
+		return config;
+	}
+
+	public void setConfig(Configuration config) {
+		this.config = config;
+	}
+
+	
 }

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
@@ -28,7 +29,7 @@ public class S3BrowserManager {
 		this.client = client;
 	}
 	
-	public S3BrowserManager(Configuration config) {
+	public S3BrowserManager(Configuration config) throws Exception {
 		this.client = new S3BrowserClient(config);
 	}
 	
@@ -63,14 +64,15 @@ public class S3BrowserManager {
 		long partSize = info.getPartSize();
 		String bucketName = info.getBucketName();
 		String keyName = info.getKeyName();
+		File file = info.getFile();
 		
 		AmazonS3 s3 = client.getS3();
 		ArrayList<PartETag> partETags = info.getPartETags();
-		File file = info.getFile();
 		long contentLength = file.length();
 		String uploadId = info.getUploadId();
+		String keyStr = info.getAccessKey()+info.getSecretKey();
 		
-		File dir = new File(System.getProperty("user.dir")+File.separator+"uploadFileDir");
+		File dir = new File(System.getProperty("user.dir")+File.separator+keyStr.hashCode());
 		if(!dir.exists()) {
 			dir.mkdir();
 		}
@@ -115,62 +117,78 @@ public class S3BrowserManager {
 		System.out.println("Done!");
 	}
 	
-	public void multiPartUpload(MultiPartUploadInfo info,String bucketName,String keyName,File file,long partSize) {
+	public void multiPartUpload(MultiPartUploadInfo info) {
+		
+		long partSize = info.getPartSize();
+		String bucketName = info.getBucketName();
+		String keyName = info.getKeyName();
+		File file = info.getFile();
 		
 		AmazonS3 s3 = client.getS3();
 		ArrayList<PartETag> partETags = new ArrayList<PartETag>();
 		info.setPartETags(partETags);
 		long contentLength = file.length();
 		String uploadId = null;
+		String keyStr = info.getAccessKey()+info.getSecretKey();
 		
-		File dir = new File(System.getProperty("user.dir")+File.separator+"uploadFileDir");
+		File dir = new File(System.getProperty("user.dir")+File.separator+keyStr.hashCode());
 		if(!dir.exists()) {
 			dir.mkdir();
 		}
 		File uploadFile = new File(dir.getAbsolutePath()+File.separator+System.currentTimeMillis());
-		
-		InitiateMultipartUploadRequest initRequest = 
-				new InitiateMultipartUploadRequest(bucketName, keyName);
-		
-		uploadId = s3.initiateMultipartUpload(initRequest).getUploadId();
-		
-		info.setUploadId(uploadId);
-		
-		// Step 2: Upload parts.
-		long filePosition = 0;
-		for (int i = 1; filePosition < contentLength; i++) {
-
-			partSize = Math.min(partSize, contentLength - filePosition);
-
-
-			UploadPartRequest uploadRequest = new UploadPartRequest()
-						.withBucketName(bucketName)
-						.withKey(keyName)
-						.withUploadId(uploadId)
-						.withPartNumber(i)
-						.withFileOffset(filePosition)
-						.withFile(file)
-						.withPartSize(partSize);
-
-			System.out.format("Uploading part %d\n", i);
-			partETags.add(s3.uploadPart(uploadRequest).getPartETag());
-			filePosition += partSize;
-			info.setFilePosition(filePosition);
-			info.setUploaded_partNumber(i);
-
-			FileTool.writeObjectToFile(info, uploadFile);
-
+		try {
+			InitiateMultipartUploadRequest initRequest = 
+					new InitiateMultipartUploadRequest(bucketName, keyName);
+			
+			uploadId = s3.initiateMultipartUpload(initRequest).getUploadId();
+			
+			info.setUploadId(uploadId);
+			
+			// Step 2: Upload parts.
+			long filePosition = 0;
+			for (int i = 1; filePosition < contentLength; i++) {
+	
+				partSize = Math.min(partSize, contentLength - filePosition);
+	
+	
+				UploadPartRequest uploadRequest = new UploadPartRequest()
+							.withBucketName(bucketName)
+							.withKey(keyName)
+							.withUploadId(uploadId)
+							.withPartNumber(i)
+							.withFileOffset(filePosition)
+							.withFile(file)
+							.withPartSize(partSize);
+	
+				System.out.format("Uploading part %d\n", i);
+				partETags.add(s3.uploadPart(uploadRequest).getPartETag());
+				filePosition += partSize;
+				info.setFilePosition(filePosition);
+				info.setUploaded_partNumber(i);
+	
+				FileTool.writeObjectToFile(info, uploadFile);
+	
+			}
+	
+			System.out.println("Completing upload");
+			
+			CompleteMultipartUploadRequest compRequest = 
+					new CompleteMultipartUploadRequest(bucketName, keyName, uploadId, partETags);
+	
+			s3.completeMultipartUpload(compRequest);
+		} catch (Exception e) {
+			System.err.println(e.toString());
+			if (uploadId != null && !uploadId.isEmpty()) {
+				// Cancel when error occurred
+				System.out.println("Aborting upload");
+				s3.abortMultipartUpload(new AbortMultipartUploadRequest(bucketName, keyName, uploadId));
+			}
+			System.exit(1);
 		}
-
-		System.out.println("Completing upload");
-		
-		CompleteMultipartUploadRequest compRequest = 
-				new CompleteMultipartUploadRequest(bucketName, keyName, uploadId, partETags);
-
-		s3.completeMultipartUpload(compRequest);
 		
 		uploadFile.delete();
 
 		System.out.println("Done!");
 	}
+	
 }
