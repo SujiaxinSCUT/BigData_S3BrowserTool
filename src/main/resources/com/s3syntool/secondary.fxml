@@ -11,7 +11,6 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.geometry.Insets?>
 
-
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="450.0" prefWidth="620.0" style="-fx-background-color: white;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.s3syntool.controller.SecondaryController">
    <top>
       <HBox alignment="CENTER_RIGHT" prefHeight="40.0" prefWidth="200.0" spacing="250.0" style="-fx-border-insets: 0 -1 -1 -1, 0 0 0 0, 0 -1 0 -1; -fx-border-width: 1; -fx-border-color: silver;" BorderPane.alignment="CENTER_RIGHT">
@@ -47,12 +46,12 @@
                         </HBox>
                         <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
                            <children>
-                              <JFXButton prefWidth="90.0" style="-fx-background-color: #218ced;" text="同步" textFill="WHITE">
+                              <JFXButton fx:id="syn_btn" disable="true" onAction="#synFile" prefWidth="90.0" style="-fx-background-color: #218ced;" text="同步" textFill="WHITE">
                                  <cursor>
                                     <Cursor fx:constant="HAND" />
                                  </cursor>
                               </JFXButton>
-                              <JFXButton prefWidth="120.0" style="-fx-background-color: #218ced;" text="上传/下载" textFill="WHITE">
+                              <JFXButton fx:id="ud_btn" disable="true" onAction="#updateAndDelete" prefWidth="120.0" style="-fx-background-color: #218ced;" text="上传/删除" textFill="WHITE">
                                  <cursor>
                                     <Cursor fx:constant="HAND" />
                                  </cursor>
@@ -63,11 +62,11 @@
                   </VBox>
                   <VBox alignment="TOP_CENTER" prefWidth="250.0" spacing="10.0">
                      <children>
-                        <JFXComboBox prefWidth="210.0" promptText="选择桶" />
+                        <JFXComboBox fx:id="bucket_cb" prefWidth="210.0" promptText="选择桶" />
                         <HBox alignment="CENTER" spacing="5.0">
                            <children>
-                              <JFXTextField prefWidth="150.0" promptText="新建桶" />
-                              <JFXButton style="-fx-background-color: #218ced;" text="创建" textFill="WHITE">
+                              <JFXTextField fx:id="bucketName_field" prefWidth="150.0" promptText="新建桶" />
+                              <JFXButton fx:id="create_btn" disable="true" onAction="#createBucket" style="-fx-background-color: #218ced;" text="创建" textFill="WHITE">
                                  <cursor>
                                     <Cursor fx:constant="HAND" />
                                  </cursor>
@@ -92,7 +91,7 @@
                   <VBox prefWidth="260.0">
                      <children>
                         <Label text="日志" textFill="#218ced" />
-                        <TextArea editable="false" prefHeight="200.0" prefWidth="180.0" />
+                        <TextArea fx:id="loggerText" editable="false" prefHeight="200.0" prefWidth="180.0" />
                      </children>
                   </VBox>
                   <VBox>
@@ -100,11 +99,26 @@
                         <Label text="大文件上传" textFill="#218ced" />
                         <ScrollPane prefHeight="200.0" prefWidth="230.0" style="-fx-background-color: white; -fx-border-width: 1; -fx-border-color: silver;">
                            <content>
-                              <VBox prefHeight="190.0" prefWidth="220.0" spacing="5.0" style="-fx-background-color: white; -fx-border-width: 1;">
-                                 <padding>
-                                    <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                                 </padding>
-                              </VBox>
+                              <AnchorPane prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: white;">
+                                 <children>
+                                    <GridPane prefWidth="230.0" style="-fx-background-color: white;">
+                                      <columnConstraints>
+                                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="140.0" minWidth="10.0" prefWidth="128.0" />
+                                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="87.0" minWidth="10.0" prefWidth="49.0" />
+                                          <ColumnConstraints hgrow="SOMETIMES" maxWidth="88.0" minWidth="10.0" prefWidth="53.0" />
+                                      </columnConstraints>
+                                      <rowConstraints>
+                                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                      </rowConstraints>
+                                       <children>
+                                          <Label text="文件名" />
+                                          <Label text="片数" GridPane.columnIndex="1" />
+                                          <Label text="状态" GridPane.columnIndex="2" />
+                                       </children>
+                                    </GridPane>
+                                    <VBox fx:id="taskList" AnchorPane.topAnchor="32.0" />
+                                 </children>
+                              </AnchorPane>
                            </content>
                         </ScrollPane>
                      </children>

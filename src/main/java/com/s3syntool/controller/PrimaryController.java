@@ -59,8 +59,8 @@ public class PrimaryController implements Initializable{
 		mesText.setFill(Color.RED);
 		mesText.setFont(Font.font(12));
 		spinner = new JFXSpinner();
-		spinner.setPrefWidth(10);
-		spinner.setPrefHeight(10);
+		spinner.setPrefWidth(15);
+		spinner.setPrefHeight(15);
 	}
 	
 	public void message(String mes) {
@@ -80,9 +80,9 @@ public class PrimaryController implements Initializable{
 	
 	public void changeStatus() {
 		connect_btn.setDisable(!connect_btn.isDisable());
-		accessKey_field.setEditable(!accessKey_field.isEditable());
-		secretKey_field.setEditable(!secretKey_field.isEditable());
-		serviceEndpoint_field.setEditable(!serviceEndpoint_field.isEditable());
+		accessKey_field.setDisable(!accessKey_field.isDisable());
+		secretKey_field.setDisable(!secretKey_field.isDisable());
+		serviceEndpoint_field.setDisable(!serviceEndpoint_field.isDisable());
 	}
 	
 	public void connect() {
@@ -139,10 +139,8 @@ class LoginTask extends Task<List<Bucket>>{
         		try {
         			App.manager = new S3SynManager(config);
         			App.bmanager = new S3BrowserManager(config);
-        			List<Bucket> buckets = App.bmanager.getBuckets();
-        			App.setHeight(480);
-        			App.setWidth(620);
-        			App.setRoot("secondary");
+        			App.bmanager.getBuckets();
+	        		App.setRoot("secondary");
         		} catch (Exception e) {
         			// TODO Auto-generated catch block
         			e.printStackTrace();

@@ -1,14 +1,10 @@
 package com.s3syntool.manager;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
@@ -95,7 +91,6 @@ public class S3BrowserManager {
 						.withFile(file)
 						.withPartSize(partSize);
 
-			System.out.format("Uploading part %d\n", i);
 			partETags.add(s3.uploadPart(uploadRequest).getPartETag());
 			filePosition += partSize;
 			info.setFilePosition(filePosition);
@@ -105,7 +100,6 @@ public class S3BrowserManager {
 
 		}
 
-		System.out.println("Completing upload");
 		
 		CompleteMultipartUploadRequest compRequest = 
 				new CompleteMultipartUploadRequest(bucketName, keyName, uploadId, partETags);
@@ -113,8 +107,6 @@ public class S3BrowserManager {
 		s3.completeMultipartUpload(compRequest);
 		
 		uploadFile.delete();
-
-		System.out.println("Done!");
 	}
 	
 	public void multiPartUpload(MultiPartUploadInfo info) {
@@ -136,7 +128,6 @@ public class S3BrowserManager {
 			dir.mkdir();
 		}
 		File uploadFile = new File(dir.getAbsolutePath()+File.separator+System.currentTimeMillis());
-		try {
 			InitiateMultipartUploadRequest initRequest = 
 					new InitiateMultipartUploadRequest(bucketName, keyName);
 			
@@ -160,7 +151,6 @@ public class S3BrowserManager {
 							.withFile(file)
 							.withPartSize(partSize);
 	
-				System.out.format("Uploading part %d\n", i);
 				partETags.add(s3.uploadPart(uploadRequest).getPartETag());
 				filePosition += partSize;
 				info.setFilePosition(filePosition);
@@ -170,25 +160,14 @@ public class S3BrowserManager {
 	
 			}
 	
-			System.out.println("Completing upload");
 			
 			CompleteMultipartUploadRequest compRequest = 
 					new CompleteMultipartUploadRequest(bucketName, keyName, uploadId, partETags);
 	
 			s3.completeMultipartUpload(compRequest);
-		} catch (Exception e) {
-			System.err.println(e.toString());
-			if (uploadId != null && !uploadId.isEmpty()) {
-				// Cancel when error occurred
-				System.out.println("Aborting upload");
-				s3.abortMultipartUpload(new AbortMultipartUploadRequest(bucketName, keyName, uploadId));
-			}
-			System.exit(1);
-		}
 		
 		uploadFile.delete();
 
-		System.out.println("Done!");
 	}
 	
 }

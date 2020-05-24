@@ -1,21 +1,10 @@
 package s3syntool;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Date;
-import java.util.List;
 
 import org.junit.Test;
 
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.s3syntool.manager.S3BrowserManager;
 import com.s3syntool.manager.S3SynManager;
-import com.s3syntool.manager.TaskManager;
-import com.s3syntool.utils.FileTool;
-import com.s3syntool.utils.MultiPartUploadInfo;
 import com.sysyntool.client.Configuration;
 
 public class ManagerTest {
@@ -26,7 +15,6 @@ public class ManagerTest {
 	private final static String signingRegion = "";
 	
 	private final static String bucketName = "sujiaxin";
-	private final static String dir = "D:";
 	@Test
 	public void uploadFile() throws Exception {
 		S3SynManager manager = new S3SynManager(new Configuration(accessKey, secretKey, serviceEndpoint, signingRegion));
@@ -49,7 +37,6 @@ public class ManagerTest {
 //		System.out.println("上传文件数："+tm.getUploadList().size());
 //		System.out.println("卸载文件数："+tm.getDeleteList().size());
 //		tm.startSyn(manager);
-		S3BrowserManager test = new S3BrowserManager(new Configuration("1","1","1",""));
-		System.out.println(test.getBuckets());
+		System.out.println(bmanager.getBuckets());
 	}
 }

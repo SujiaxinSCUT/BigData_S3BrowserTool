@@ -40,5 +40,4 @@ public class S3BrowserClient {
 		this.config = config;
 	}
 
-	
 }

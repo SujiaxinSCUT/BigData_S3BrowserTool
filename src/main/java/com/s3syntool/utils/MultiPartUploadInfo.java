@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 import com.amazonaws.services.s3.model.PartETag;
+import com.s3syntool.manager.TaskManager;
 
 public class MultiPartUploadInfo implements Serializable{
 	
@@ -24,7 +25,16 @@ public class MultiPartUploadInfo implements Serializable{
 	private String bucketName;
 	private ArrayList<PartETag> partETags;
 	
+	private transient TaskManager.UploadTask ut;
 	
+	
+	
+	public TaskManager.UploadTask getUt() {
+		return ut;
+	}
+	public void setUt(TaskManager.UploadTask ut) {
+		this.ut = ut;
+	}
 	public String getAccessKey() {
 		return accessKey;
 	}
@@ -54,6 +64,7 @@ public class MultiPartUploadInfo implements Serializable{
 	}
 	public void setUploaded_partNumber(int uploaded_partNumber) {
 		this.uploaded_partNumber = uploaded_partNumber;
+		this.ut.update(uploaded_partNumber+1);
 	}
 	public long getFilePosition() {
 		return filePosition;

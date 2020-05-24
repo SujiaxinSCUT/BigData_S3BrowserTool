@@ -13,6 +13,7 @@ import java.util.Set;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.s3syntool.utils.FileTool;
+import com.s3syntool.utils.Logger;
 import com.s3syntool.utils.MultiPartUploadInfo;
 import com.sysyntool.client.Configuration;
 import com.sysyntool.client.S3BrowserClient;
@@ -41,7 +42,7 @@ public class S3SynManager {
 		manager = new S3BrowserManager(client);
 	}
 	
-	public void synchronizeFile(TaskManager tm) {
+	public void synchronizeFile(TaskManager tm,Logger logger) {
 		File dir_file = new File(synDir);
 		ObjectListing listing = manager.getObjectList(synBucketName);
 		List<S3ObjectSummary> objectList = listing.getObjectSummaries();
@@ -59,7 +60,6 @@ public class S3SynManager {
 			}else {
 				String path = file.getAbsolutePath().substring(synDir.length()+1);
 				path = path.replaceAll("\\\\", "/");
-				System.out.println(path);
 				if(objectMap.containsKey(path)) {
 					S3ObjectSummary os = objectMap.get(path);
 					Date fileDate = new Date(file.lastModified());
@@ -67,30 +67,30 @@ public class S3SynManager {
 					if(objectDate.before(fileDate)) {
 //						upload file
 						tm.submitUploadFile(path, file);
-						System.out.println(path+"加入上传组");
+						logger.info(path+"加入上传组");
 					}
 					objectMap.remove(path);
 				}else {
 //					upload file
 					tm.submitUploadFile(path, file);
-					System.out.println(path+"加入上传组");
+					logger.info(path+"加入上传组");
 				}
 			}
 		}
 //		delete the rest file
 		Set<String> keySet = objectMap.keySet();
 		for(String key:keySet) {
-			System.out.println(key+"加入删除组");
+			logger.info(key+"加入删除组");
 			tm.submitDeleteFile(key);
 		}
+		logger.info("需上传文件数:"+tm.getUploadList().size()+",需删除文件数:"+tm.getDeleteList().size());
 	}
 	
 	public void uploadSmallFile(String keyName,File file) {
 		manager.putObject(synBucketName, keyName, file);
 	}
 	
-	public void uploadLargeFile(String keyName,File file) {
-		MultiPartUploadInfo info = new MultiPartUploadInfo();
+	public void uploadLargeFile(String keyName,File file,MultiPartUploadInfo info) {
 		info.setAccessKey(config.getAccessKey());
 		info.setSecretKey(config.getSecretKey());
 		info.setBucketName(synBucketName);
@@ -98,6 +98,10 @@ public class S3SynManager {
 		info.setKeyName(keyName);
 		info.setPartSize(partSize);
 		manager.multiPartUpload(info);
+	}
+	
+	public void reupload(MultiPartUploadInfo info) {
+		manager.restartMultiPartUpload(info);
 	}
 	
 	public List<MultiPartUploadInfo> searchUploadingFile() {
@@ -136,4 +140,13 @@ public class S3SynManager {
 		this.synBucketName = synBucketName;
 	}
 
+	public Configuration getConfig() {
+		return config;
+	}
+
+	public void setConfig(Configuration config) {
+		this.config = config;
+	}
+
+	
 }

@@ -8,6 +8,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
+import com.s3syntool.controller.SecondaryController;
 import com.s3syntool.manager.S3BrowserManager;
 import com.s3syntool.manager.S3SynManager;
 
@@ -23,6 +24,8 @@ public class App extends Application {
     public static S3SynManager manager;
     
     public static S3BrowserManager bmanager;
+    
+    public static SecondaryController controller;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -31,6 +34,9 @@ public class App extends Application {
         stage.setScene(scene);
         stage.show();
         stage.setResizable(false);
+        stage.setOnCloseRequest(e->{
+        	System.exit(0);
+        });
     }
 
     public static void setRoot(String fxml) throws IOException {
