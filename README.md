@@ -25,3 +25,18 @@
 ![image.png](https://upload-images.jianshu.io/upload_images/17501422-531e0170363bad24.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 ![image.png](https://upload-images.jianshu.io/upload_images/17501422-c4a398671ba564b8.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+
+
+# 5月24日 星期日
+
+基本完成整个程序的UI编写和业务逻辑代码，在线程UI方面略有欠缺，但基本功能已完备，正在进行简单的功能性测试
+
+
+![72A`O{1RI~K71{{W3IIPU39.png](https://upload-images.jianshu.io/upload_images/17501422-f844cc42ed2e2600.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+![ALJ~KP1N1P}X6`%H0QJO93L.png](https://upload-images.jianshu.io/upload_images/17501422-3155277496e870e6.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+![L3QEN$2IJUQNRF%E13~MSMN.png](https://upload-images.jianshu.io/upload_images/17501422-7589e112407d999e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+![BY9DFQ7(F%`8XG[$(DEC`L.png](https://upload-images.jianshu.io/upload_images/17501422-761da4334a0db6b1.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
