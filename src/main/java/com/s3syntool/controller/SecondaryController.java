@@ -13,15 +13,16 @@ import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXComboBox;
 import com.jfoenix.controls.JFXTextField;
 import com.s3syntool.App;
+import com.s3syntool.client.Configuration;
 import com.s3syntool.manager.TaskManager;
 import com.s3syntool.utils.Logger;
-import com.sysyntool.client.Configuration;
 
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -34,7 +35,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.DirectoryChooser;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
@@ -93,7 +93,7 @@ public class SecondaryController  implements Initializable{
 		logger = new Logger(this);
 		
 		getBucketList();
-//		桶名文本框监听文本改变
+
 		bucketName_field.textProperty().addListener(new ChangeListener<String>() {
 			@Override
 			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
@@ -103,13 +103,14 @@ public class SecondaryController  implements Initializable{
 				}else create_btn.setDisable(false);
 			}
 		});
-//	复选列表框选中监听	
+
 		bucket_cb.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
 
 			@Override
 			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
 				// TODO Auto-generated method stub
 				String path = path_field.getText();
+				tm.clear();
 				if(path!=null&&path.length()>0) {
 					syn_btn.setDisable(false);
 				}
@@ -123,6 +124,7 @@ public class SecondaryController  implements Initializable{
 			@Override
 			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
 				// TODO Auto-generated method stub
+				tm.clear();
 				if(newValue==null||newValue.length()==0) {
 					syn_btn.setDisable(true);
 				}else {
@@ -136,9 +138,9 @@ public class SecondaryController  implements Initializable{
 			}
 		});
 		
-		App.stage().centerOnScreen();
+//		App.stage().centerOnScreen();
 		
-		new Thread(new DetectFileTask()).start();
+		new Thread(new DetectFileTask()).start();;
 	}
 	
 	public void addTask(Node task) {
@@ -148,8 +150,14 @@ public class SecondaryController  implements Initializable{
 	public void synFile() {
 		tm.clear();
 		logger.info("开始同步目录"+App.manager.getSynDir()+"与桶"+App.manager.getSynBucketName());
-		App.manager.synchronizeFile(tm, logger);
-		ud_btn.setDisable(false);
+		try {
+			App.manager.synchronizeFile(tm, logger);
+			ud_btn.setDisable(false);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			logger.error(e.getMessage());
+		}
 	}
 	
 	public void updateAndDelete() {
@@ -187,19 +195,21 @@ public class SecondaryController  implements Initializable{
 	public void createBucket() {
 		String bucketName = bucketName_field.getText();
 		if(!bucketNameSet.contains(bucketName)) {
-			syn_btn.setDisable(true);
+			create_btn.setDisable(true);
 			try {
 				App.bmanager.createBucket(bucketName);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-				syn_btn.setDisable(false);
+				logger.info("创建失败");
 			}
 			syn_btn.setDisable(false);
 			bucketNameSet.add(bucketName);
 			observable_list.add(bucketName);
 			bucketName_field.clear();
 			bucket_cb.getSelectionModel().select(bucketName);
+		}else {
+			logger.info("该桶已存在");
 		}
 	}
 	
@@ -207,38 +217,26 @@ public class SecondaryController  implements Initializable{
 		loggerText.appendText(mes+"\r\n");
 	}
 	
-	public void logout() {
-		try {
-			App.setRoot("primary");
-			App.setHeight(400);
-			App.setWidth(400);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
-	public class DetectFileTask implements Runnable{
+	public class DetectFileTask extends Task<File>{
 
 		@Override
-		public void run() {
+		protected File call() throws Exception {
 			// TODO Auto-generated method stub
 			Configuration info = App.manager.getConfig();
 			String keyStr = info.getAccessKey()+info.getSecretKey();		
 			File dir = new File(System.getProperty("user.dir")+File.separator+keyStr.hashCode());
 			if(dir.exists()&&dir.isDirectory()) {
-				File[] files = dir.listFiles();
+				final File[] files = dir.listFiles();
 				if(files.length>0) {
 					Platform.runLater(new Runnable() {
 					    @Override
 					    public void run() {
-					        //更新JavaFX组件的代码
-					    	Stage infoStage = new Stage();
-					    	infoStage.setAlwaysOnTop(true);
-							infoStage.initOwner(App.stage());
-							infoStage.initStyle(StageStyle.TRANSPARENT);
-							FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("Info.fxml"));
-							try {
+					        //更新JavaFX的主线程的代码放在此处
+					    	try {
+								Stage infoStage = new Stage();
+								infoStage.initOwner(App.stage());
+								infoStage.initStyle(StageStyle.TRANSPARENT);
+								FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("Info.fxml"));
 								Scene scene = new Scene(fxmlLoader.load());
 								InfoController controller = fxmlLoader.getController();
 								controller.setFiles(files);
@@ -246,7 +244,7 @@ public class SecondaryController  implements Initializable{
 								controller.setTm(tm);
 								infoStage.setScene(scene);
 								infoStage.show();
-							} catch (IOException e) {
+							} catch (Exception e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
@@ -254,6 +252,7 @@ public class SecondaryController  implements Initializable{
 					});
 				}
 			}
+			return null;
 		}
 		
 	}

@@ -19,7 +19,14 @@ public class Logger {
 	public void info(String mes) {
 		StringBuilder info = new StringBuilder("[Info]");
 		Date date = new Date(System.currentTimeMillis());
-		info.append(sdf.format(date)).append(":").append(mes);
+		info.append(sdf.format(date)).append(": ").append(mes);
+		controller.logInfo(info.toString());
+	}
+	
+	public void error(String mes) {
+		StringBuilder info = new StringBuilder("[Error]");
+		Date date = new Date(System.currentTimeMillis());
+		info.append(sdf.format(date)).append(": ").append(mes);
 		controller.logInfo(info.toString());
 	}
 }

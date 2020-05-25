@@ -12,11 +12,11 @@ import java.util.Set;
 
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.s3syntool.client.Configuration;
+import com.s3syntool.client.S3BrowserClient;
 import com.s3syntool.utils.FileTool;
 import com.s3syntool.utils.Logger;
 import com.s3syntool.utils.MultiPartUploadInfo;
-import com.sysyntool.client.Configuration;
-import com.sysyntool.client.S3BrowserClient;
 
 public class S3SynManager {
 	
@@ -66,13 +66,17 @@ public class S3SynManager {
 					Date objectDate = os.getLastModified();
 					if(objectDate.before(fileDate)) {
 //						upload file
-						tm.submitUploadFile(path, file);
+						if(file.length()>MAX_SIZE) {
+							tm.submitBigFile(path, file);
+						}else tm.submitUploadFile(path, file);
 						logger.info(path+"加入上传组");
 					}
 					objectMap.remove(path);
 				}else {
 //					upload file
-					tm.submitUploadFile(path, file);
+					if(file.length()>MAX_SIZE) {
+						tm.submitBigFile(path, file);
+					}else tm.submitUploadFile(path, file);
 					logger.info(path+"加入上传组");
 				}
 			}
@@ -83,7 +87,7 @@ public class S3SynManager {
 			logger.info(key+"加入删除组");
 			tm.submitDeleteFile(key);
 		}
-		logger.info("需上传文件数:"+tm.getUploadList().size()+",需删除文件数:"+tm.getDeleteList().size());
+		logger.info("需上传文件数:"+(tm.getUploadList().size()+tm.getUploadBigFileList().size())+",需删除文件数:"+tm.getDeleteList().size());
 	}
 	
 	public void uploadSmallFile(String keyName,File file) {

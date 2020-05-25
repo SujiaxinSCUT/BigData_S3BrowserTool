@@ -3,9 +3,9 @@ package s3syntool;
 
 import org.junit.Test;
 
+import com.s3syntool.client.Configuration;
 import com.s3syntool.manager.S3BrowserManager;
 import com.s3syntool.manager.S3SynManager;
-import com.sysyntool.client.Configuration;
 
 public class ManagerTest {
 

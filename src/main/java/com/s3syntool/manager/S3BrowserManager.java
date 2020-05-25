@@ -12,10 +12,10 @@ import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.PartETag;
 import com.amazonaws.services.s3.model.UploadPartRequest;
+import com.s3syntool.client.Configuration;
+import com.s3syntool.client.S3BrowserClient;
 import com.s3syntool.utils.FileTool;
 import com.s3syntool.utils.MultiPartUploadInfo;
-import com.sysyntool.client.Configuration;
-import com.sysyntool.client.S3BrowserClient;
 
 public class S3BrowserManager {
 

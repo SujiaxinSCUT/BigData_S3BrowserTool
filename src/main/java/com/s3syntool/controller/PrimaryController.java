@@ -1,5 +1,6 @@
 package com.s3syntool.controller;
 
+import java.io.File;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -9,9 +10,10 @@ import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXSpinner;
 import com.jfoenix.controls.JFXTextField;
 import com.s3syntool.App;
+import com.s3syntool.client.Configuration;
 import com.s3syntool.manager.S3BrowserManager;
 import com.s3syntool.manager.S3SynManager;
-import com.sysyntool.client.Configuration;
+import com.s3syntool.utils.FileTool;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -61,6 +63,19 @@ public class PrimaryController implements Initializable{
 		spinner = new JFXSpinner();
 		spinner.setPrefWidth(15);
 		spinner.setPrefHeight(15);
+		detectLoginCache();
+	}
+	
+	public void detectLoginCache() {
+		File cacheFile = new File(System.getProperty("user.dir")+File.separator+"logincache.dat");
+		if(cacheFile.exists()) {
+			Configuration config = (Configuration) FileTool.readObjectFromFile(cacheFile);
+			if(config!=null) {
+				accessKey_field.setText(config.getAccessKey());
+				secretKey_field.setText(config.getSecretKey());
+				serviceEndpoint_field.setText(config.getServiceEndpoint());
+			}
+		}
 	}
 	
 	public void message(String mes) {
@@ -105,7 +120,7 @@ public class PrimaryController implements Initializable{
     	changeStatus();
     	addSpinner();
 		Configuration config = new Configuration(access_key, secret_key, serviceEndpoint, "");
-		LoginTask task = new LoginTask(config);
+		final LoginTask task = new LoginTask(config);
 		Thread t = new Thread(task);
         t.setDaemon(true);
         t.start();
@@ -141,6 +156,8 @@ class LoginTask extends Task<List<Bucket>>{
         			App.bmanager = new S3BrowserManager(config);
         			App.bmanager.getBuckets();
 	        		App.setRoot("secondary");
+	        		File cacheFile = new File(System.getProperty("user.dir")+File.separator+"logincache.dat");
+	        		FileTool.writeObjectToFile(config, cacheFile);
         		} catch (Exception e) {
         			// TODO Auto-generated catch block
         			e.printStackTrace();

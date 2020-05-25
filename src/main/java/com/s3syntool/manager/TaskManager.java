@@ -15,6 +15,7 @@ import com.s3syntool.utils.Logger;
 import com.s3syntool.utils.MultiPartUploadInfo;
 
 import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -25,11 +26,15 @@ public class TaskManager {
 	
 	private ExecutorService pool;
 	
-	private int poolSize = 5;
+	private int poolSize = 10;
 	
 	private Queue<String> uploadList;
 	
 	private Map<String,File> uploadMap;
+	
+	private Queue<String> uploadBigFileList;
+	
+	private Map<String,File> uploadBigFileMap;
 	
 	private Queue<String> deleteList;
 	
@@ -39,6 +44,8 @@ public class TaskManager {
 		pool = Executors.newFixedThreadPool(poolSize);
 		uploadList = new LinkedList<>();
 		uploadMap = new HashMap<>();
+		uploadBigFileList = new LinkedList<>();
+		uploadBigFileMap = new HashMap<>();
 		deleteList = new LinkedList<>();
 		this.controller = controller;
 	}
@@ -53,29 +60,29 @@ public class TaskManager {
 		uploadList.add(keyName);
 	}
 	
+	public void submitBigFile(String keyName,File file) {
+		uploadBigFileMap.put(keyName, file);
+		uploadBigFileList.add(keyName);
+	}
+	
 	public void submitDeleteFile(String keyName) {
 		deleteList.add(keyName);
 	}
 	
 	public void startSyn(S3SynManager manager,Logger logger) {		
-		while(!uploadList.isEmpty()) {
-			String keyName = uploadList.poll();
-			File file = uploadMap.get(keyName);
-			if(file.length()>=S3SynManager.MAX_SIZE) {
-				logger.info(keyName+"大于限定文件大小，加入大文件上传任务栏");
-				UploadTask task = new UploadTask(manager, keyName, file, controller);
-				pool.submit(task);
-			}else {
-				logger.info("开始上传"+keyName);
-				manager.uploadSmallFile(keyName, file);
-				logger.info(keyName+"上传成功");
-			}
-		}
-		while(!deleteList.isEmpty()) {
-			String keyName = deleteList.poll();
-			logger.info("开始删除"+keyName);
-			manager.deleteFile(keyName);
-			logger.info(keyName+"删除成功");
+		SynTask task = new SynTask(logger, manager);
+		pool.submit(task);
+		startSynBigFile(manager,logger);
+	}
+	
+	public void startSynBigFile(S3SynManager manager,Logger logger) {
+		while(!uploadBigFileList.isEmpty()) {
+			String fileName = uploadBigFileList.poll();
+			File file = uploadBigFileMap.get(fileName);
+			uploadBigFileMap.remove(fileName);
+			logger.info(fileName+"大于限定文件大小，加入大文件上传任务栏");
+			UploadTask task = new UploadTask(manager, fileName, file, controller);
+			pool.submit(task);
 		}
 	}
 	
@@ -99,10 +106,57 @@ public class TaskManager {
 		this.deleteList = deleteList;
 	}
 	
+	
+	
+	public Queue<String> getUploadBigFileList() {
+		return uploadBigFileList;
+	}
+
+	public void setUploadBigFileList(Queue<String> uploadBigFileList) {
+		this.uploadBigFileList = uploadBigFileList;
+	}
+
 	public void clear() {
 		this.deleteList.clear();
 		this.uploadList.clear();
 		this.uploadMap.clear();
+		this.uploadBigFileList.clear();
+		this.uploadBigFileMap.clear();
+	}
+	
+	public class SynTask extends Task<String>{
+
+		private Logger logger;
+		
+		private S3SynManager manager;
+		
+		public SynTask(Logger logger, S3SynManager manager) {
+			this.logger = logger;
+			this.manager = manager;
+		}
+		
+
+
+		@Override
+		protected String call() throws Exception {
+			// TODO Auto-generated method stub
+    		while(!uploadList.isEmpty()) {
+    			String keyName = uploadList.poll();
+    			File file = uploadMap.get(keyName);
+    			uploadMap.remove(keyName);
+    			logger.info("开始上传"+keyName);
+    			manager.uploadSmallFile(keyName, file);
+    			logger.info(keyName+"上传成功");
+    		}
+    		while(!deleteList.isEmpty()) {
+    			String keyName = deleteList.poll();
+    			logger.info("开始删除"+keyName);
+    			manager.deleteFile(keyName);
+    			logger.info(keyName+"删除成功");
+    		}
+			return null;
+		}
+		
 	}
 	
 	public class UploadTask implements Runnable{
@@ -125,7 +179,7 @@ public class TaskManager {
 			this.controller = controller;
 		}
 		
-		public void update(int partNum) {
+		public void update(final int partNum) {
 	        Platform.runLater(new Runnable() {
 	            @Override public void run() {
 	            	JFXSpinner spinner = new JFXSpinner();

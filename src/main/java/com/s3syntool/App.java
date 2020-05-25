@@ -7,7 +7,6 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-
 import com.s3syntool.controller.SecondaryController;
 import com.s3syntool.manager.S3BrowserManager;
 import com.s3syntool.manager.S3SynManager;
@@ -42,10 +41,11 @@ public class App extends Application {
     public static void setRoot(String fxml) throws IOException {
     	Parent parent = loadFXML(fxml);
         scene.setRoot(parent);
+//        stage.centerOnScreen();
     }
 
     private static Parent loadFXML(String fxml) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource(fxml + ".fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource(fxml+".fxml"));
         return fxmlLoader.load();
     }
 

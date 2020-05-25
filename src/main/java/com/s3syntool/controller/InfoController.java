@@ -2,7 +2,6 @@ package com.s3syntool.controller;
 
 import java.io.File;
 import java.net.URL;
-import java.util.List;
 import java.util.ResourceBundle;
 
 import com.s3syntool.App;
@@ -49,6 +48,7 @@ public class InfoController implements Initializable{
 	public void handleYes() {
 		for(File file:files) {
 			MultiPartUploadInfo info = (MultiPartUploadInfo) FileTool.readObjectFromFile(file);
+			file.delete();
 			tm.submitReUploadFile(info, App.manager);
 		}
 		this.stage.close();
