@@ -40,3 +40,9 @@
 ![L3QEN$2IJUQNRF%E13~MSMN.png](https://upload-images.jianshu.io/upload_images/17501422-7589e112407d999e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 ![BY9DFQ7(F%`8XG[$(DEC`L.png](https://upload-images.jianshu.io/upload_images/17501422-761da4334a0db6b1.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+
+
+# 5月25日 星期一
+
+当前项目基本完备，但偶尔有页面崩溃的现象，是暂时难以解决的问题，但是底层核心功能完备正常
